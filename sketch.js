@@ -7,7 +7,9 @@ var generations = 1;
 var target;
 var maxforce = 0.2;
 
-var lifespan = 200;
+var speedMultiplier = 10;
+var lifespan = 300;
+
 var popCount = 200;
 var mutationrate = 0.015;
 var elitism = true;
@@ -30,15 +32,14 @@ function setup() {
 
 function draw() {
     background(0);
-    population.run();
-    population.run();
-    population.run();
-    population.run();
-    lifeP.html('Lifespan: ' + count);
+    for(var i = 0; i < speedMultiplier; i++){
+        population.run();    
+    }
+    lifeP.html('Lifespan: ' + (count * speedMultiplier));
     genP.html('Generation: ' + generations);
     count++;
     
-    if(count == (lifespan / 4)){
+    if(count == (lifespan / speedMultiplier)){
         population.evaluate();
         maxFitP.html('MAX Fitness: ' + population.maxfit);
         minFitP.html('MIN Fitness: ' + population.minfit);
