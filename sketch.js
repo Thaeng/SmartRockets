@@ -7,9 +7,10 @@ var generations = 1;
 var target;
 var maxforce = 0.2;
 
-var lifespan = 300;
+var lifespan = 200;
 var popCount = 200;
 var mutationrate = 0.015;
+var elitism = true;
 
 var rx = 100;
 var ry = 150;
@@ -30,11 +31,14 @@ function setup() {
 function draw() {
     background(0);
     population.run();
+    population.run();
+    population.run();
+    population.run();
     lifeP.html('Lifespan: ' + count);
     genP.html('Generation: ' + generations);
     count++;
     
-    if(count == lifespan){
+    if(count == (lifespan / 4)){
         population.evaluate();
         maxFitP.html('MAX Fitness: ' + population.maxfit);
         minFitP.html('MIN Fitness: ' + population.minfit);
@@ -66,10 +70,12 @@ function Population(){
     
     this.evaluate = function(){
         this.maxfit = 0;
-        this.minfit = 999999;
         this.avgfit = 0;
         for(var i = 0; i < this.popsize; i++){
             this.rockets[i].calcFitness();
+            if(i == 0){
+                this.minfit = this.rockets[i].fitness;
+            }
             if(this.rockets[i].fitness > this.maxfit){
                 this.maxfit = this.rockets[i].fitness;
             }
@@ -83,9 +89,9 @@ function Population(){
         for(var i = 0; i < this.popsize; i++){
             this.rockets[i].fitness /= this.maxfit;
         }
-        
-        this.matingpool = [];
+                
         for(var i = 0; i < this.popsize; i++){
+            
             //Hier wird der matingpool befuellt
             //Je hoeher die Fitness ist desto
             //oefter wird die Rocket in den matingpool genommen
@@ -100,7 +106,22 @@ function Population(){
     
     this.selection = function(){
         var newRockets = [];
-        for(var i = 0; i < this.rockets.length; i++){
+        
+        var elitismOffset = 0;
+        if(elitism){
+            elitismOffset = 1;            
+            var bestRocket = this.rockets[0];
+            for(var i = 1; i < this.rockets.length; i++){
+                if(bestRocket.fitness < this.rockets[i].fitness){
+                    bestRocket = this.rockets[i];
+                }
+            }            
+            newRockets[0] = new Rocket(bestRocket.dna);
+        }
+        
+        for(var i = elitismOffset; i < this.rockets.length; i++){
+            
+            
             var parentA = random(this.matingpool).dna;
             var parentB = random(this.matingpool).dna;
             var child = parentA.crossover(parentB);
@@ -176,7 +197,7 @@ function Rocket(dna) {
         var d = dist(this.pos.x, this.pos.y, target.x, target.y);
         //this.fitness = (1000-(2.4875*d));
         
-        this.fitness = ((d - width) * 0.6) * ((d-width) * 0.6);        
+        this.fitness = ((d - width) * 0.8) * ((d-width) * 0.8);        
         
         //Distancemagnifier
         if(d <= 25){
@@ -200,11 +221,11 @@ function Rocket(dna) {
         }
         
         if(this.crashed && !this.completed){
-            this.fitness *= 0.4;
+            this.fitness *= 0.2;
         }
         
         if(this.walled && !this.completed){
-            this.fitness *= 0.6;
+            this.fitness *= 0.2;
         }
         
         if(this.fitness == 0){
@@ -244,7 +265,7 @@ function Rocket(dna) {
             this.vel.add(this.acc);
             this.pos.add(this.vel);
             this.acc.mult(0);
-            this.vel.limit(4);
+            this.vel.limit(7);
         }
     }
     
