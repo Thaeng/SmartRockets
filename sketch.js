@@ -13,6 +13,7 @@ var lifespan = 300;
 var popCount = 200;
 var mutationrate = 0.015;
 var elitism = true;
+var elitismMutation = true;
 
 var rx = 100;
 var ry = 150;
@@ -116,7 +117,10 @@ function Population(){
                 if(bestRocket.fitness < this.rockets[i].fitness){
                     bestRocket = this.rockets[i];
                 }
-            }            
+            }
+            if(elitismMutation){
+                bestRocket.dna.mutation();
+            }
             newRockets[0] = new Rocket(bestRocket.dna);
         }
         
@@ -218,7 +222,7 @@ function Rocket(dna) {
         //this.fitness *= (1+(this.survivalTime / (popCount/2)));
         
         if(this.completed){
-            this.fitness *= 20;
+            this.fitness *= 10;
         }
         
         if(this.crashed && !this.completed){
@@ -228,6 +232,8 @@ function Rocket(dna) {
         if(this.walled && !this.completed){
             this.fitness *= 0.2;
         }
+        
+        this.fitness = this.fitness * 0.1
         
         if(this.fitness == 0){
             this.fitness = 1;
