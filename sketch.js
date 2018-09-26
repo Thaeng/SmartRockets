@@ -7,7 +7,7 @@ var generations = 1;
 var target;
 var maxforce = 0.2;
 
-var speedMultiplier = 10;
+var speedMultiplier = 4;
 var lifespan = 300;
 
 var popCount = 200;
