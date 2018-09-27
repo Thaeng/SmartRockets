@@ -1,3 +1,5 @@
+//Scales everything
+var scaleMult = 2.5;
 //Holds the current Population
 var population;
 //Paragraphs for Meta-Data
@@ -12,16 +14,15 @@ var generations = 1;
 var target;
 
 //Multiplier for Vectors
-var maxforce = 0.3;
+var maxforce = 0.3*scaleMult;
 //Mutliplier for the Game Speed
-var speedMultiplier = 1;
+var speedMultiplier = 2;
 //Lifespan of each Rocket
 var lifespan = 300;
-
 //Number of Rockets in Population
 var popCount = 200;
 //Tournamentcapacity
-var tournamentSize = 7;
+var tournamentSize = popCount * 0.05;
 //Chance for Mutation
 var mutationrate = 0.01;
 //Elitism picks the best of each Generation and adds it to the next Generation without crossover or mutation
@@ -33,12 +34,12 @@ var distanceReward = 1.0;
 //Rewards the Rockets that are very close to the target
 var proximityReward = false;
 //Distance to target that counts as hitting the target
-var proximityToTarget = 7;
+var proximityToTarget = 7*scaleMult;
 //Obstacles
 var obstacles = [];
 
 function setup() {
-    createCanvas(400,300);
+    createCanvas(400*scaleMult,300*scaleMult);
     population = new Population();
     lifeP = createP();
     maxFitP = createP();
@@ -48,7 +49,7 @@ function setup() {
     genP = createP();
 		genP.html('Generation: ' + generations);
 		//Target is being setup
-    target = createVector(width/2, 30);
+    target = createVector(width/2, 30*scaleMult);
 		obstacles.push(new Obstacle(160,100,80,10));
 		obstacles.push(new Obstacle(80,180,80,10));
 		obstacles.push(new Obstacle(230,180,80,10));
@@ -87,7 +88,7 @@ function draw() {
 	
     //Spawn Target
 		fill(10,60,255);
-    ellipse(target.x,target.y,16,16);
+    ellipse(target.x,target.y,16*scaleMult,16*scaleMult);
 }
 
 //Holds a Population of Rockets
@@ -153,12 +154,12 @@ function Population(){
             var bestRocket = this.rockets[0];
 						//Searches for the best Rocket
             for(var i = 1; i < this.rockets.length; i++){
-								if(bestRocket.fitness == this.rockets[i].fitness){
-										//console.log('Equally fit Rockets found survivalTime BestRocket: ' + bestRocket.survivalTime + ' survivalTime Contestant: ' + this.rockets[i].survivalTime);
-										if(bestRocket.survivalTime > this.rockets[i].survivalTime){
-												bestRocket = this.rockets[i];
-										}
-								}else if(bestRocket.fitness < this.rockets[i].fitness){
+				if(bestRocket.fitness == this.rockets[i].fitness){
+				//console.log('Equally fit Rockets found survivalTime BestRocket: ' + bestRocket.survivalTime + ' survivalTime Contestant: ' + this.rockets[i].survivalTime);
+				    if(bestRocket.survivalTime > this.rockets[i].survivalTime){
+				        bestRocket = this.rockets[i];
+				    }
+				}else if(bestRocket.fitness < this.rockets[i].fitness){
                     bestRocket = this.rockets[i];
                 }
             }
@@ -269,53 +270,52 @@ function Rocket(dna) {
     this.completed = false;
 		//crashed = true means, that this Rocket has come into contact with the obstacle
     this.crashed = false;
-		//Count for how long this Rocket has survived
+	//Count for how long this Rocket has survived
     this.survivalTime = -1;
-		//walled = true means, that this Rocket has come into contact with either side of the canvas
+	//walled = true means, that this Rocket has come into contact with either side of the canvas
     this.walled = false;
     //Is set when this Rocket is the best in the current Population
-		this.best = false;
-		
+	this.best = false;		
 	
-		//Calculates the Fitness of this Rocket based on how close it is to the target, how long it survived and if it crashed or walled.
+    //Calculates the Fitness of this Rocket based on how close it is to the target, how long it survived and if it crashed or walled.
     this.calcFitness = function(){
         var d = dist(this.pos.x, this.pos.y, target.x, target.y);
         
-				//The closer this Rocket is to the target, the higher the fitness becomes
+        //The closer this Rocket is to the target, the higher the fitness becomes
         this.fitness = ((d - width) * distanceReward) * ((d-width) * distanceReward);        
         
         //Slight Multiplier if this Rocket is very close (ProximityReward)
-				if(proximityReward){
-					if(d <= 25){
-							this.fitness *= 1.5;
-					}else if(d <= 50){
-							this.fitness *= 1.3;
-					}else if(d <= 75){
-							this.fitness *= 1.15;
-					}
-				}
+        if(proximityReward){
+            if(d <= 25){
+                this.fitness *= 1.5;
+            }else if(d <= 50){
+                this.fitness *= 1.3;
+            }else if(d <= 75){
+                this.fitness *= 1.15;
+            }
+        }
         
-				//If this Rocket has reached the target, it gains an immense Fitness boost
+        //If this Rocket has reached the target, it gains an immense Fitness boost
         if(this.completed){
-            this.fitness = 100000;
+            this.fitness *= 2;
         }else{
-						//If this Rocket crashed then the Fitness is reduced
-						if(this.crashed && !this.completed){
-								this.fitness *= 0.1;
-						}
-						//If this Rocket walled then the Fitness is reduced
-						if(this.walled && !this.completed){
-								this.fitness *= 0.2;
-						}
-						//If the Fitness of this Rocket becomes 0 
-						//or it didn't survive for longer than 40 iterations 
-						//or it is near the bottom of the screen then its Fitness becomes 1
-						if(this.fitness == 0 || this.survivalTime < 40 || this.pos.y > (width - (width*0.1))){
-								this.fitness = 1;
-						}
-				}
-				//Reduces the fitness to a more normal Number
-				this.fitness = round(this.fitness * 0.1);
+            //If this Rocket crashed then the Fitness is reduced
+            if(this.crashed && !this.completed){
+                this.fitness *= 0.1;
+            }
+            //If this Rocket walled then the Fitness is reduced
+            if(this.walled && !this.completed){
+                this.fitness *= 0.2;
+            }
+            //If the Fitness of this Rocket becomes 0 
+            //or it didn't survive for longer than 40 iterations 
+            //or it is near the bottom of the screen then its Fitness   becomes 1
+            if(this.fitness == 0 || this.survivalTime < 40 || this.pos.y > (width - (width*0.1))){
+                this.fitness = 1;
+            }
+        }
+        //Reduces the fitness to a more normal Number
+        this.fitness = round(this.fitness * 0.1);
     }
     
 		//Applies a force to this Rocket
@@ -323,21 +323,21 @@ function Rocket(dna) {
         this.acc.add(force);
     }
     
-		//Updates all relevant Information of this Rocket
-		//Checks if the Target was reached,
-		//This Rocket crashed,
-		//This Rocket walled,
-		//sets the survivalTime and
-		//moves its Position based on the applied force, the acceleration and velocity
+    //Updates all relevant Information of this Rocket
+    //Checks if the Target was reached,
+    //This Rocket crashed,
+    //This Rocket walled,
+    //sets the survivalTime and
+    //moves its Position based on the applied force, the acceleration and velocity
     this.update = function(){
         var d = dist(this.pos.x, this.pos.y, target.x, target.y);
-        if(d < proximityToTarget && !this.completed){
+        if(d*scaleMult < proximityToTarget && !this.completed){
 						targetReachedCount++;
             this.completed = true;
             this.pos = target.copy();
         }
 			
-				for(var i = 0; i < obstacles.length; i++){
+        for(var i = 0; i < obstacles.length; i++){
 						if(obstacles[i].checkCollision(this.pos.x,this.pos.y)){
 							 this.crashed = true;
 						}
@@ -369,37 +369,37 @@ function Rocket(dna) {
     this.show = function(){
         push();
         noStroke();
-				if(this.best){
-        		fill(255,30,30,255);
-				}else{
-						fill(255,165,0,150);
-				}
+        if(this.best){
+            fill(255,30,30,255);
+        }else{
+            fill(255,165,0,150);
+        }
         translate(this.pos.x, this.pos.y);
         rotate(this.vel.heading());
         rectMode(CENTER);
-        rect(0,0, 25, 5);
+        rect(0,0, 25*scaleMult, 5*scaleMult);
         pop();
     }
 }
 
 function Obstacle(x,y,w,h){
-		this.x = x;
-		this.y = y;
-		this.w = w;
-		this.h = h;
+		this.x = x*scaleMult;
+		this.y = y*scaleMult;
+		this.w = w*scaleMult;
+		this.h = h*scaleMult;
 
 		this.show = function(){
 				push();
 				fill(255,255);
-				rect(x,y,w,h);
+				rect(this.x,this.y,this.w,this.h);
 				pop();
 		}
 		
 		this.checkCollision = function(x,y){
-				if(x > this.x && x < this.x + this.w && y > this.y && y < this.y + this.h){
-						return true;
-				}else{
-						return false;
-				}
+            if(x > this.x && x < this.x + this.w && y > this.y && y < this.y + this.h){
+                return true;
+            }else{
+                return false;
+            }
 		}
 }
