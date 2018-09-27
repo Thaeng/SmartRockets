@@ -137,15 +137,6 @@ function Population() {
 
 		for (var i = 0; i < this.popsize; i++) {
 			this.matingpool.push(this.rockets[i]);
-			// Selection for the Mating pool,
-			// the higher the Fitness of a Rocket the more often it is in the
-			// matingpool
-			// Fitness 70 = 700 X in matingpool
-			// Fitness 3 = 30 X in matingpool
-			/*
-			 * var n = this.rockets[i].fitness; for(var j = 0; j < n; j++){
-			 * this.matingpool.push(this.rockets[i]); }
-			 */
 		}
 	}
 
